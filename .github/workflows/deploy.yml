@@ -1,0 +1,77 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  VPC_ID: vpc-0c44d4bbf7e200ac6
+  SUBNET_PUBLIC_1: subnet-006fb5b9d897e2401
+  SUBNET_PUBLIC_2: subnet-0ffc63bc8ba607264
+  SUBNET_PUBLIC_EC2: subnet-006fb5b9d897e2401
+  KEY_NAME: keypair-cloud
+
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy Stack 1 - Security Groups
+        run: |
+          aws cloudformation deploy \
+            --template-file stacks/security.yml \
+            --stack-name SecurityGroups-Veronica-Sanchez \
+            --parameter-overrides VpcId=${{ env.VPC_ID }} \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
+
+      - name: Deploy Stack 2 - EC2 Estatica
+        run: |
+          aws cloudformation deploy \
+            --template-file stacks/ec2.yml \
+            --stack-name EC2-Veronica-Sanchez \
+            --parameter-overrides \
+              SubnetPublicId=${{ env.SUBNET_PUBLIC_EC2 }} \
+              SecurityStackName=SecurityGroups-Veronica-Sanchez \
+              KeyName=${{ env.KEY_NAME }} \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
+
+      - name: Deploy Stack 3 - ALB y ASG
+        run: |
+          aws cloudformation deploy \
+            --template-file stacks/alb-asg.yml \
+            --stack-name ALB-ASG-Mayerly-Araque \
+            --parameter-overrides \
+              VpcId=${{ env.VPC_ID }} \
+              SubnetPublic1=${{ env.SUBNET_PUBLIC_1 }} \
+              SubnetPublic2=${{ env.SUBNET_PUBLIC_2 }} \
+              SecurityStackName=SecurityGroups-Veronica-Sanchez \
+              KeyName=${{ env.KEY_NAME }} \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
+
+      - name: Deploy Stack 4 - Automatizacion
+        run: |
+          aws cloudformation deploy \
+            --template-file stacks/automation.yml \
+            --stack-name Automation-Mayerly-Araque \
+            --parameter-overrides \
+              ALBASGStackName=ALB-ASG-Mayerly-Araque \
+              SecurityStackName=SecurityGroups-Veronica-Sanchez \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
