@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Stack de Security Groups - Veronica-Sanchez
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: ID de la VPC existente
+
+Resources:
+
+  SecurityGroupEC2:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: SG-EC2-Veronica-Sanchez
+      GroupDescription: Security Group para instancia EC2 publica
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: SG-EC2-Veronica-Sanchez
+
+  SecurityGroupALB:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: SG-ALB-Veronica-Sanchez
+      GroupDescription: Security Group para Application Load Balancer
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: SG-ALB-Veronica-Sanchez
+
+Outputs:
+  SecurityGroupEC2Id:
+    Description: ID del Security Group de la EC2
+    Value: !Ref SecurityGroupEC2
+    Export:
+      Name: !Sub "${AWS::StackName}-SGEC2Id"
+
+  SecurityGroupALBId:
+    Description: ID del Security Group del ALB
+    Value: !Ref SecurityGroupALB
+    Export:
+      Name: !Sub "${AWS::StackName}-SGALBId"
