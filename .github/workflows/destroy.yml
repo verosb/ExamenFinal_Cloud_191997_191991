@@ -1,0 +1,51 @@
+name: Destroy Infrastructure
+
+on:
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  Destroy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Destroy Stack 4 - Automatizacion
+        run: |
+          aws cloudformation delete-stack \
+            --stack-name Automation-Mayerly-Araque
+          aws cloudformation wait stack-delete-complete \
+            --stack-name Automation-Mayerly-Araque
+
+      - name: Destroy Stack 3 - ALB y ASG
+        run: |
+          aws cloudformation delete-stack \
+            --stack-name ALB-ASG-Mayerly-Araque
+          aws cloudformation wait stack-delete-complete \
+            --stack-name ALB-ASG-Mayerly-Araque
+
+      - name: Destroy Stack 2 - EC2 Estatica
+        run: |
+          aws cloudformation delete-stack \
+            --stack-name EC2-Veronica-Sanchez
+          aws cloudformation wait stack-delete-complete \
+            --stack-name EC2-Veronica-Sanchez
+
+      - name: Destroy Stack 1 - Security Groups
+        run: |
+          aws cloudformation delete-stack \
+            --stack-name SecurityGroups-Veronica-Sanchez
+          aws cloudformation wait stack-delete-complete \
+            --stack-name   SecurityGroups-Veronica-Sanchez

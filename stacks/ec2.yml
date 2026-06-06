@@ -1,25 +1,33 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Stack EC2 Estatica - Veronica Sanchez
+Description: Stack EC2 Estatica con Elastic IP - Veronica-Sanchez
 
 Parameters:
-  SubnetId:
+  SubnetPublicId:
+    Type: AWS::EC2::Subnet::Id
+    Description: ID de la subred publica
+  SecurityStackName:
     Type: String
+    Description: Nombre del stack de seguridad
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Nombre del Key Pair para SSH
 
 Resources:
 
-  InstanciaVeronicaSanchez:
+  EC2Instance:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: t3.micro
       ImageId: ami-0c02fb55956c7d316
-      SubnetId: !Ref SubnetId
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      SubnetId: !Ref SubnetPublicId
       SecurityGroupIds:
-        - !ImportValue SGEc2VeronicaSanchez
+        - Fn::ImportValue: !Sub "${SecurityStackName}-SGEC2Id"
       Tags:
         - Key: Name
           Value: EC2-Veronica-Sanchez
       UserData:
-        Fn::Base64: !Sub |
+        Fn::Base64: |
           #!/bin/bash
           yum update -y
           yum install -y httpd
@@ -27,7 +35,7 @@ Resources:
           systemctl enable httpd
           echo "<h1>Hola desde EC2 - Veronica Sanchez</h1>" > /var/www/html/index.html
 
-  ElasticIPVeronicaSanchez:
+  ElasticIP:
     Type: AWS::EC2::EIP
     Properties:
       Domain: vpc
@@ -35,17 +43,25 @@ Resources:
         - Key: Name
           Value: EIP-Veronica-Sanchez
 
-  AsociacionEIP:
+  EIPAssociation:
     Type: AWS::EC2::EIPAssociation
     Properties:
-      InstanceId: !Ref InstanciaVeronicaSanchez
-      EIP: !Ref ElasticIPVeronicaSanchez
+      InstanceId: !Ref EC2Instance
+      EIP: !Ref ElasticIP
 
 Outputs:
-  InstanciaId:
+  InstanceId:
     Description: ID de la instancia EC2
-    Value: !Ref InstanciaVeronicaSanchez
+    Value: !Ref EC2Instance
+    Export:
+      Name: !Sub "${AWS::StackName}-InstanceId"
 
-  DireccionEIP:
-    Description: Elastic IP publica
-    Value: !Ref ElasticIPVeronicaSanchez
+  ElasticIPAddress:
+    Description: Direccion IP publica estatica
+    Value: !Ref ElasticIP
+    Export:
+      Name: !Sub "${AWS::StackName}-ElasticIP"
+
+  WebsiteURL:
+    Description: URL del sitio web
+    Value: !Sub "http://${ElasticIP}"
