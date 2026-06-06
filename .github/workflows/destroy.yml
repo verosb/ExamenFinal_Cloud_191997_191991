@@ -48,4 +48,4 @@ jobs:
           aws cloudformation delete-stack \
             --stack-name SecurityGroups-Veronica-Sanchez
           aws cloudformation wait stack-delete-complete \
-            --stack-name SecurityGroups-Veronica-Sanchez
+            --stack-name   SecurityGroups-Veronica-Sanchez
