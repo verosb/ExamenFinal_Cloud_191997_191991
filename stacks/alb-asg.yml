@@ -22,7 +22,7 @@ Resources:
       LaunchTemplateName: LT-Mayerly-Araque
       LaunchTemplateData:
         ImageId: ami-0c02fb55956c7d316
-        InstanceType: t2.micro
+        InstanceType: t3.micro
         KeyName: !Ref KeyName
         SecurityGroupIds:
           - Fn::ImportValue: !Sub "${SecurityStackName}-SGEC2Id"
