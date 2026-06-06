@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Stack de Security Groups - Veronica Sanchez
+
+Resources:
+
+  SGEc2VeronicaSanchez:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: SG-EC2-Veronica-Sanchez
+      GroupDescription: Security Group para instancia EC2 publica
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: SG-EC2-Veronica-Sanchez
+
+  SGAlbVeronicaSanchez:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: SG-ALB-Veronica-Sanchez
+      GroupDescription: Security Group para Application Load Balancer
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: SG-ALB-Veronica-Sanchez
+
+Outputs:
+  SGEc2Id:
+    Description: ID del Security Group EC2
+    Value: !Ref SGEc2VeronicaSanchez
+    Export:
+      Name: SGEc2VeronicaSanchez
+
+  SGAlbId:
+    Description: ID del Security Group ALB
+    Value: !Ref SGAlbVeronicaSanchez
+    Export:
+      Name: SGAlbVeronicaSanchez
